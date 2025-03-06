@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .container-wrapper {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 border border-transparent 
+           rounded-lg font-medium shadow-sm transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary-600 to-primary-700 
+           text-white hover:from-primary-700 hover:to-primary-800 
+           focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gradient-to-r from-secondary-600 to-secondary-700 
+           text-white hover:from-secondary-700 hover:to-secondary-800 
+           focus:ring-secondary-500;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border-gray-300 shadow-sm 
+           focus:border-primary-500 focus:ring-primary-500;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg overflow-hidden;
+  }
+
+  .nav-link {
+    @apply text-gray-100 hover:text-white transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  .gradient-animate {
+    @apply bg-gradient-to-r animate-gradient;
+  }
+}
+
+/* Custom scrollbar for textarea */
+textarea {
+  @apply font-mono;
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.300') transparent;
+}
+
+textarea::-webkit-scrollbar {
+  @apply w-2;
+}
+
+textarea::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+/* Animation keyframes are now handled in tailwind.config.js */
