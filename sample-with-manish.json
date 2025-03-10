@@ -1,0 +1,65 @@
+{
+  "contact": {
+    "firstName": "Himanshu ",
+    "lastName": "Sharma"
+  },
+  "attendees": [
+    {
+      "attendee_full_name": {
+        "firstName": "Himanshu",
+        "lastName": "Sharma"
+      },
+      "email": "himanshu.sharma@optimiser.com",
+      "description": "This is a short text"
+    },
+    {
+      "attendee_full_name": {
+        "firstName": "Manish",
+        "lastName": "Mishra"
+      },
+      "email": "manish.sharma@optimiser.com",
+      "description": "Street Address 1Street Address 1 "
+    }
+  ],
+  "venues": [
+    {
+      "venue_address": {
+        "streetAddressLine1": "London",
+        "streetAddressLine2": "London",
+        "city": "London",
+        "state": "UK",
+        "country": "GB",
+        "postalCode": "E1987Y",
+        "countryText": "United Kingdom"
+      },
+      "venue_desc": "This is a long text",
+      "venue_email": "suraj@raj.com"
+    },
+    {
+      "venue_address": {
+        "streetAddressLine1": "Birmingham",
+        "streetAddressLine2": "Birmingham",
+        "city": "Birmingham",
+        "state": "Birmingham",
+        "country": "GB",
+        "postalCode": "BH1235",
+        "countryText": "United Kingdom"
+      },
+      "venue_desc": "This is a long text two",
+      "venue_email": "manoharcla@gmail.com"
+    },
+    {
+      "venue_address": {
+        "streetAddressLine1": "Cardiff",
+        "streetAddressLine2": "Cardiff",
+        "city": "Cardiff",
+        "state": "Cardiff",
+        "country": "GB",
+        "postalCode": "CF12346",
+        "countryText": "United Kingdom"
+      },
+      "venue_desc": "This is long text 3",
+      "venue_email": "sand2@gmail.com"
+    }
+  ]
+}

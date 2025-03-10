@@ -1,0 +1,125 @@
+{
+  "contacts": [
+    {
+      "firstName": "Amit",
+      "lastName": "Verma",
+      "attendees": [
+        {
+          "attendee_full_name": {
+            "firstName": "Amit",
+            "lastName": "Verma"
+          },
+          "email": "amit.verma@company.com",
+          "description": "Senior Manager at XYZ Corp"
+        },
+        {
+          "attendee_full_name": {
+            "firstName": "Neha",
+            "lastName": "Singh"
+          },
+          "email": "neha.singh@company.com",
+          "description": "Marketing Head at ABC Ltd."
+        },
+        {
+          "attendee_full_name": {
+            "firstName": "Rahul",
+            "lastName": "Mehta"
+          },
+          "email": "rahul.mehta@company.com",
+          "description": "Software Engineer at DEF Inc."
+        }
+      ],
+      "venues": [
+        {
+          "venue_address": {
+            "streetAddressLine1": "221B Baker Street",
+            "streetAddressLine2": "Central London",
+            "city": "London",
+            "state": "England",
+            "country": "GB",
+            "postalCode": "NW16XE",
+            "countryText": "United Kingdom"
+          },
+          "venue_desc": "Business Conference Hall",
+          "venue_email": "info@londonvenue.com"
+        },
+        {
+          "venue_address": {
+            "streetAddressLine1": "1 Piccadilly",
+            "streetAddressLine2": "Manchester Central",
+            "city": "Manchester",
+            "state": "England",
+            "country": "GB",
+            "postalCode": "M12AQ",
+            "countryText": "United Kingdom"
+          },
+          "venue_desc": "Tech Meet-up Auditorium",
+          "venue_email": "events@manchestervenue.com"
+        },
+        {
+          "venue_address": {
+            "streetAddressLine1": "King’s Road",
+            "streetAddressLine2": "Downtown Birmingham",
+            "city": "Birmingham",
+            "state": "England",
+            "country": "GB",
+            "postalCode": "B25AA",
+            "countryText": "United Kingdom"
+          },
+          "venue_desc": "Corporate Seminar Hall",
+          "venue_email": "booking@birminghamvenue.com"
+        }
+      ]
+    },
+    {
+      "firstName": "Priya",
+      "lastName": "Kapoor",
+      "attendees": [
+        {
+          "attendee_full_name": {
+            "firstName": "Priya",
+            "lastName": "Kapoor"
+          },
+          "email": "priya.kapoor@enterprise.com",
+          "description": "CEO at Global Ventures"
+        },
+        {
+          "attendee_full_name": {
+            "firstName": "Vikram",
+            "lastName": "Rao"
+          },
+          "email": "vikram.rao@enterprise.com",
+          "description": "Finance Director at Global Ventures"
+        }
+      ],
+      "venues": [
+        {
+          "venue_address": {
+            "streetAddressLine1": "Marina Bay Sands",
+            "streetAddressLine2": "Downtown Core",
+            "city": "Singapore",
+            "state": "Singapore",
+            "country": "SG",
+            "postalCode": "018956",
+            "countryText": "Singapore"
+          },
+          "venue_desc": "Luxury Business Summit Hall",
+          "venue_email": "contact@marinabaysands.com"
+        },
+        {
+          "venue_address": {
+            "streetAddressLine1": "Orchard Road",
+            "streetAddressLine2": "Shopping District",
+            "city": "Singapore",
+            "state": "Singapore",
+            "country": "SG",
+            "postalCode": "238879",
+            "countryText": "Singapore"
+          },
+          "venue_desc": "Exclusive Executive Lounge",
+          "venue_email": "reservations@orchardvenue.com"
+        }
+      ]
+    }
+  ]
+}

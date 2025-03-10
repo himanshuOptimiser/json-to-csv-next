@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { convertToCSV } from '@/utils/jsonToCSV';
+import { convertToCSV } from '../utils/jsonToCsv';
 import { exportToExcel } from '@/utils/excelExport';
 import { convertToIndentedCSV } from '@/utils/indentedCSV';
+//import sampleData from './sample-1.json';
 
 export default function Home() {
   const [jsonData, setJsonData] = useState('');
@@ -11,16 +12,16 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [indentedView, setIndentedView] = useState(false);
 
-  // New function: simply converts JSON to CSV and sets CSV state (for visualiser)
   const handleConvert = async () => {
     try {
       setIsLoading(true);
       setError('');
+      setIndentedView(false); // Reset indented view when converting to flat CSV
       
       const parsedData = JSON.parse(jsonData);
       console.log('Parsed JSON:', parsedData);
       
-      const csv = await convertToCSV(parsedData);
+      const csv = convertToCSV(parsedData);
       console.log('CSV Result:', csv);
       
       if (!csv.trim()) {
@@ -71,18 +72,24 @@ export default function Home() {
   };
 
   const handleCSVExport = () => {
-    if (!csvData) return;
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    // Set filename based on view type
-    const filename = indentedView ? 'indented-view.csv' : 'flat-data.csv';
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    try {
+      // Use the current jsonData instead of undefined sampleData
+      const parsedData = JSON.parse(jsonData);
+      const csvContent = convertToCSV(parsedData);
+      
+      if (!csvContent) {
+        throw new Error('No CSV content generated');
+      }
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'exported_data.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      setError(err.message || 'Error exporting to CSV');
+    }
   };
 
   return (
@@ -185,35 +192,33 @@ export default function Home() {
             {csvData && (
               <div className="mt-8">
                 <h2 className="text-2xl font-semibold text-center text-gray-200 mb-4">
-                  CSV Output Visualiser
+                  {indentedView ? 'Indented CSV View' : 'Flat CSV View'}
                 </h2>
                 <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
                   <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <caption className="p-5 text-lg font-semibold text-left text-gray-900 bg-white dark:text-white dark:bg-gray-800">
                       CSV Data Preview
                       <p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
-                        Review the converted CSV data before exporting.
+                        {indentedView ? 'Showing hierarchical structure' : 'Showing flattened structure'}
                       </p>
                     </caption>
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                      {csvData.split('\n')[0] && (
-                        <tr>
-                          {csvData.split('\n')[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((header, idx) => (
-                            <th key={idx} scope="col" className="px-6 py-3">
-                              {header.replace(/^"|"$/g, '')}
-                            </th>
-                          ))}
-                        </tr>
-                      )}
+                      <tr>
+                        {csvData.split('\n')[0]?.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((header, idx) => (
+                          <th key={idx} scope="col" className="px-6 py-3 whitespace-pre-wrap break-words max-w-xs">
+                            {header.replace(/^"|"$/g, '').split('.').join(' → ')}
+                          </th>
+                        ))}
+                      </tr>
                     </thead>
                     <tbody>
                       {csvData
                         .split('\n')
                         .slice(1)
                         .map((row, rowIndex) => (
-                          <tr key={rowIndex} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                          <tr key={rowIndex} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-700">
                             {row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((cell, cellIndex) => (
-                              <td key={cellIndex} className="px-6 py-4 whitespace-nowrap">
+                              <td key={cellIndex} className="px-6 py-4 whitespace-pre-wrap break-words max-w-xs">
                                 {cell.replace(/^"|"$/g, '')}
                               </td>
                             ))}

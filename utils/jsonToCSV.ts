@@ -1,61 +1,156 @@
-import { Parser } from 'json2csv';
+export function convertToCSV(jsonData: any): string {
+  const mainArray = findMainArray(jsonData);
+  if (!mainArray) return '';
 
-/**
- * Recursively flattens an object.
- * For arrays:
- *  - If elements are objects, each is flattened and stringified, then joined by ' | '
- *  - Otherwise, the array is joined by ', '
- */
-function flattenObject(obj: any, prefix = '', res: Record<string, any> = {}): Record<string, any> {
-  for (const key in obj) {
-    const value = obj[key];
-    const newKey = prefix ? `${prefix}.${key}` : key;
-    if (Array.isArray(value)) {
-      if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
-        // Flatten each object element and join their stringified versions
-        res[newKey] = value
-          .map(item => {
-            const flatItem = flattenObject(item);
-            return JSON.stringify(flatItem);
-          })
-          .join(' | ');
-      } else {
-        // Join primitive values
-        res[newKey] = value.join(', ');
+  // Process each record with proper LEFT JOIN logic
+  const flattenedData = mainArray.reduce((acc: any[], parentRecord) => {
+    // First flatten the parent record (excluding arrays)
+    const baseRecord = Object.entries(parentRecord).reduce((obj, [key, value]) => {
+      if (!Array.isArray(value)) {
+        if (typeof value === 'object' && value !== null) {
+          return { ...obj, ...flattenObject(key, value) };
+        }
+        return { ...obj, [key]: value };
       }
-    } else if (typeof value === 'object' && value !== null) {
-      flattenObject(value, newKey, res);
-    } else {
-      res[newKey] = value;
+      return obj;
+    }, {});
+
+    // Find all array properties that need to be joined
+    const arrayProperties = Object.entries(parentRecord)
+      .filter(([_, value]) => Array.isArray(value))
+      .map(([key, value]) => ({ key, array: value as any[] }));
+
+    if (arrayProperties.length === 0) {
+      // No arrays to join, return single record
+      return [...acc, baseRecord];
     }
-  }
-  return res;
+
+    // Perform LEFT JOIN for each array property
+    let result = [baseRecord];
+    arrayProperties.forEach(({ key, array }) => {
+      // If array is empty, keep existing records with nulls
+      if (array.length === 0) {
+        result = result.map(row => ({
+          ...row,
+          [`${key}_empty`]: true
+        }));
+        return;
+      }
+
+      // Perform LEFT JOIN with current array
+      result = result.flatMap(row =>
+        array.map(item => ({
+          ...row,
+          ...flattenObject(key, item)
+        }))
+      );
+    });
+
+    return [...acc, ...result];
+  }, []);
+
+  return createCSV(flattenedData);
 }
 
-/**
- * Converts JSON data to CSV.
- * Supports an array of objects or a single object with nested objects/arrays.
- */
-export function convertToCSV(data: any): string {
-  let rows: string[] = [];
-  if (Array.isArray(data)) {
-    if (data.length === 0) return '';
-    // Get headers from the first item
-    const headers = Object.keys(flattenObject(data[0]));
-    rows.push(headers.join(','));
-    for (const item of data) {
-      const flatItem = flattenObject(item);
-      const row = headers.map(header => `"${(flatItem[header] !== undefined ? String(flatItem[header]).replace(/"/g, '""') : '')}"`);
-      rows.push(row.join(','));
+function findMainArray(data: any): any[] | null {
+  if (Array.isArray(data)) return data;
+  
+  // Look for the first array property in the object
+  for (const key in data) {
+    if (Array.isArray(data[key])) {
+      return data[key];
     }
-    return rows.join('\n');
-  } else if (typeof data === 'object' && data !== null) {
-    const flatData = flattenObject(data);
-    const headers = Object.keys(flatData);
-    rows.push(headers.join(','));
-    const row = headers.map(header => `"${(flatData[header] !== undefined ? String(flatData[header]).replace(/"/g, '""') : '')}"`);
-    rows.push(row.join(','));
-    return rows.join('\n');
   }
-  return String(data);
+  
+  return null;
+}
+
+function createCSV(flattenedData: any[]): string {
+  if (flattenedData.length === 0) return '';
+  
+  // Get all unique headers
+  const headers = Array.from(
+    new Set(
+      flattenedData.reduce((allKeys: string[], row) => 
+        [...allKeys, ...Object.keys(row)], []
+      )
+    )
+  ).sort((a, b) => {
+    // Get the hierarchy levels
+    const aLevels = a.split('_');
+    const bLevels = b.split('_');
+    
+    // Compare each level
+    for (let i = 0; i < Math.min(aLevels.length, bLevels.length); i++) {
+      if (aLevels[i] !== bLevels[i]) {
+        return aLevels[i].localeCompare(bLevels[i]);
+      }
+    }
+    
+    // If one is a parent of another, parent comes first
+    return aLevels.length - bLevels.length;
+  });
+
+  // Create CSV rows
+  const rows = flattenedData.map(row =>
+    headers.map(header => formatCell(row[header]))
+  );
+
+  // Generate CSV content
+  return [
+    headers.map(formatHeader).join(','),
+    ...rows.map(row => row.map(cell => `"${cell || ''}"`).join(','))
+  ].join('\n');
+}
+
+// Helper function to flatten nested objects with proper prefixing
+function flattenObject(prefix: string, obj: any): Record<string, any> {
+  const result: Record<string, any> = {};
+  
+  function recurse(current: any, prop: string) {
+    if (!current || typeof current !== 'object') {
+      result[prop] = current;
+      return;
+    }
+
+    if (Array.isArray(current)) {
+      if (current.length === 0) {
+        result[prop] = '';
+      } else if (typeof current[0] !== 'object') {
+        result[prop] = current.join('; ');
+      }
+      return;
+    }
+
+    Object.entries(current).forEach(([key, value]) => {
+      const newKey = prop ? `${prop}_${key}` : key;
+      recurse(value, newKey);
+    });
+  }
+  
+  recurse(obj, prefix);
+  return result;
+}
+
+function formatHeader(header: string): string {
+  return header
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function formatCell(value: any): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (Array.isArray(value)) {
+    return value.join('; ');
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value).replace(/"/g, '""');
 }
