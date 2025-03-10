@@ -1,55 +1,70 @@
 export function convertToCSV(jsonData: any): string {
-  const mainArray = findMainArray(jsonData);
-  if (!mainArray) return '';
+  const tables = findMainArrays(jsonData);
+  if (tables.length === 0) return '';
 
-  // Process each record with proper LEFT JOIN logic
-  const flattenedData = mainArray.reduce((acc: any[], parentRecord) => {
-    // First flatten the parent record (excluding arrays)
-    const baseRecord = Object.entries(parentRecord).reduce((obj, [key, value]) => {
-      if (!Array.isArray(value)) {
-        if (typeof value === 'object' && value !== null) {
-          return { ...obj, ...flattenObject(key, value) };
+  const allFlattenedRows = tables.reduce((acc: any[], { tableName, data }) => {
+    // Process each record with proper LEFT JOIN logic
+    const flattenedData = data.reduce((acc2: any[], parentRecord) => {
+      // Add table name to the record if exists
+      const baseRecord = { ...(tableName ? { table: tableName } : {}), 
+        // ...existing code for flattening parent properties...
+        ...Object.entries(parentRecord).reduce((obj, [key, value]) => {
+          if (!Array.isArray(value)) {
+            if (typeof value === 'object' && value !== null) {
+              return { ...obj, ...flattenObject(key, value) };
+            }
+            return { ...obj, [key]: value };
+          }
+          return obj;
+        }, {})
+      };
+
+      // Identify array properties to perform LEFT JOIN
+      const arrayProperties = Object.entries(parentRecord)
+        .filter(([_, value]) => Array.isArray(value))
+        .map(([key, value]) => ({ key, array: value as any[] }));
+
+      if (arrayProperties.length === 0) {
+        return [...acc2, baseRecord];
+      }
+      
+      let result = [baseRecord];
+      arrayProperties.forEach(({ key, array }) => {
+        if (array.length === 0) {
+          result = result.map(row => ({
+            ...row,
+            // Suffix indicating empty array join
+            [`${key}_empty`]: true
+          }));
+          return;
         }
-        return { ...obj, [key]: value };
-      }
-      return obj;
-    }, {});
-
-    // Find all array properties that need to be joined
-    const arrayProperties = Object.entries(parentRecord)
-      .filter(([_, value]) => Array.isArray(value))
-      .map(([key, value]) => ({ key, array: value as any[] }));
-
-    if (arrayProperties.length === 0) {
-      // No arrays to join, return single record
-      return [...acc, baseRecord];
-    }
-
-    // Perform LEFT JOIN for each array property
-    let result = [baseRecord];
-    arrayProperties.forEach(({ key, array }) => {
-      // If array is empty, keep existing records with nulls
-      if (array.length === 0) {
-        result = result.map(row => ({
-          ...row,
-          [`${key}_empty`]: true
-        }));
-        return;
-      }
-
-      // Perform LEFT JOIN with current array
-      result = result.flatMap(row =>
-        array.map(item => ({
-          ...row,
-          ...flattenObject(key, item)
-        }))
-      );
-    });
-
-    return [...acc, ...result];
+        result = result.flatMap(row =>
+          array.map(item => ({
+            ...row,
+            ...flattenObject(key, item)
+          }))
+        );
+      });
+      return [...acc2, ...result];
+    }, []);
+    return [...acc, ...flattenedData];
   }, []);
 
-  return createCSV(flattenedData);
+  return createCSV(allFlattenedRows);
+}
+
+// New helper function to find all main arrays and assign table names if available
+function findMainArrays(data: any): { tableName?: string, data: any[] }[] {
+  if (Array.isArray(data)) {
+    return [{ data }];
+  }
+  const tables: { tableName?: string, data: any[] }[] = [];
+  for (const key in data) {
+    if (Array.isArray(data[key])) {
+      tables.push({ tableName: key, data: data[key] });
+    }
+  }
+  return tables;
 }
 
 function findMainArray(data: any): any[] | null {
